@@ -1,0 +1,417 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEFENDER | URL Security Scanner</title>
+<meta name="description" content="DEFENDER URL security analysis and threat detection dashboard.">
+<style>
+:root {
+  --bg: #08111f;
+  --panel: #101d30;
+  --border: #22344b;
+  --green: #42e6a4;
+  --text: #edf5ff;
+  --muted: #93a5bb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 6%;
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo {
+  background: #173b3b;
+  color: var(--green);
+  padding: 11px;
+  border-radius: 12px;
+  font-size: 24px;
+}
+.brand h1 { margin: 0; font-size: 23px; letter-spacing: 2px; }
+.brand small { color: var(--muted); }
+.status { color: var(--green); font-size: 13px; }
+main { max-width: 1050px; margin: 45px auto; padding: 0 20px; }
+.hero { text-align: center; margin-bottom: 32px; }
+.eyebrow { color: var(--green); font-size: 12px; letter-spacing: 2px; }
+.hero h2 { font-size: clamp(28px, 5vw, 43px); margin: 13px 0; }
+.hero p { color: var(--muted); line-height: 1.7; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  padding: 25px;
+  margin-bottom: 22px;
+}
+label { display: block; margin-bottom: 12px; font-weight: 600; }
+.search {
+  display: flex;
+  gap: 10px;
+}
+input {
+  flex: 1;
+  min-width: 0;
+  background: #081321;
+  color: white;
+  border: 1px solid #30435b;
+  padding: 16px;
+  border-radius: 9px;
+  font-size: 15px;
+  outline: none;
+}
+input:focus { border-color: var(--green); }
+button {
+  border: 0;
+  background: var(--green);
+  color: #062019;
+  font-weight: 700;
+  padding: 15px 23px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+button:disabled { opacity: .6; cursor: wait; }
+.hint { font-size: 12px; color: var(--muted); margin-top: 13px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 13px;
+}
+.stat strong { display: block; font-size: 25px; margin-bottom: 7px; }
+.stat span { font-size: 13px; color: var(--muted); }
+#result { display: none; }
+.result-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.result-top h3 { margin: 0; }
+.pill {
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #26364a;
+}
+.safe { color: var(--green); }
+.danger { color: #ff7777; }
+.warning { color: #ffd16b; }
+.url-text {
+  overflow-wrap: anywhere;
+  color: #b7c8dd;
+  margin: 18px 0;
+}
+.bar { height: 8px; background: #26364a; border-radius: 9px; overflow: hidden; }
+#barFill { height: 100%; width: 0; transition: width .3s; }
+.details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+.detail {
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.detail span { color: var(--muted); font-size: 12px; }
+.detail p { margin: 8px 0 0; overflow-wrap: anywhere; }
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.section-head h3 { margin: 0; }
+.text-button {
+  color: var(--green);
+  background: transparent;
+  padding: 8px;
+}
+.history-item {
+  border-top: 1px solid var(--border);
+  padding: 14px 0;
+  overflow-wrap: anywhere;
+}
+.history-item small { color: var(--muted); }
+.history-item strong { display: block; margin-bottom: 6px; }
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 28px 15px;
+  border-top: 1px solid var(--border);
+  line-height: 1.8;
+}
+@media (max-width: 650px) {
+  header { padding: 16px 5%; }
+  .status { display: none; }
+  main { margin-top: 30px; }
+  .search { flex-direction: column; }
+  .search button { width: 100%; }
+  .grid { grid-template-columns: 1fr; }
+  .details { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">⬡</div>
+    <div>
+      <h1>DEFENDER</h1>
+      <small>URL SECURITY INTELLIGENCE</small>
+    </div>
+  </div>
+  <div class="status">● Security dashboard</div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">CYBER THREAT ANALYSIS</div>
+    <h2>Check a URL before you trust it.</h2>
+    <p>Inspect suspicious links and identify common warning signs.<br>
+       Make safer decisions before visiting unknown websites.</p>
+  </section>
+
+  <section class="panel">
+    <label for="urlInput">Enter a URL to analyze</label>
+    <div class="search">
+      <input id="urlInput" type="text"
+        placeholder="https://example.com"
+        autocomplete="url"
+        spellcheck="false">
+      <button id="scanBtn" onclick="scanURL()">Analyze URL ↗</button>
+    </div>
+    <div class="hint">
+      Demo mode: this page checks URL format and basic suspicious patterns.
+      It does not connect to live antivirus engines.
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="stat">
+      <strong id="totalScans">0</strong>
+      <span>Analysis attempts (this session)</span>
+    </div>
+    <div class="stat">
+      <strong id="suspiciousCount">0</strong>
+      <span>Flagged by demo rules</span>
+    </div>
+    <div class="stat">
+      <strong>DEMO</strong>
+      <span>Threat intelligence status</span>
+    </div>
+  </section>
+
+  <section id="result" class="panel" aria-live="polite">
+    <div class="result-top">
+      <h3>Analysis report</h3>
+      <span id="verdict" class="pill">Analyzing</span>
+    </div>
+    <p id="scannedUrl" class="url-text"></p>
+    <div class="bar"><div id="barFill"></div></div>
+    <p id="riskText" class="hint"></p>
+    <div class="details">
+      <div class="detail">
+        <span>URL format</span>
+        <p id="formatResult"></p>
+      </div>
+      <div class="detail">
+        <span>HTTPS connection scheme</span>
+        <p id="httpsResult"></p>
+      </div>
+      <div class="detail">
+        <span>Suspicious patterns</span>
+        <p id="patternResult"></p>
+      </div>
+      <div class="detail">
+        <span>Detection engines</span>
+        <p>Not connected — demo mode</p>
+      </div>
+    </div>
+    <p class="hint">
+      This result is a heuristic demonstration, not a malware verdict.
+      A clean result does not establish that a URL is safe.
+    </p>
+  </section>
+
+  <section class="panel">
+    <div class="section-head">
+      <h3>Recent analyses</h3>
+      <button class="text-button" onclick="clearHistory()">Clear history</button>
+    </div>
+    <div id="history">
+      <p class="hint">Your analysis history will appear here.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  DEFENDER Cybersecurity Project · Educational demo<br>
+  Do not enter private links, password-reset links, or URLs containing tokens.
+  Never visit suspicious links just to test them.
+</footer>
+
+<script>
+let total = 0;
+let flagged = 0;
+let historyItems = [];
+
+const $ = id => document.getElementById(id);
+
+function scanURL() {
+  const raw = $("urlInput").value.trim();
+
+  if (!raw) {
+    alert("Please enter a URL first.");
+    return;
+  }
+
+  // Accept only HTTP/HTTPS URLs; never fetch or open the submitted URL.
+  let parsed;
+  try {
+    parsed = new URL(raw);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("Unsupported protocol");
+    }
+    if (!parsed.hostname || !parsed.hostname.includes(".")) {
+      throw new Error("Invalid hostname");
+    }
+  } catch {
+    alert("Enter a valid URL, including https:// or http://");
+    return;
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  const reasons = [];
+
+  // These are warning signals only, not proof of malware.
+  if (parsed.protocol === "http:") {
+    reasons.push("Uses HTTP rather than HTTPS");
+  }
+
+  if (parsed.username || parsed.password) {
+    reasons.push("Contains user-info before the hostname");
+  }
+
+  if (host.includes("xn--")) {
+    reasons.push("Contains an internationalized hostname");
+  }
+
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+    reasons.push("Uses an IP address as the hostname");
+  }
+
+  if (host.split(".").length > 5) {
+    reasons.push("Contains many hostname subdomains");
+  }
+
+  if (parsed.href.length > 200) {
+    reasons.push("Unusually long URL");
+  }
+
+  if (/(login|verify|account|secure|update|password)/i.test(
+      host.split(".")[0]) && !["https:"].includes(parsed.protocol)) {
+    reasons.push("Login-related wording over an unencrypted scheme");
+  }
+
+  total++;
+  const suspicious = reasons.length > 0;
+  if (suspicious) flagged++;
+
+  $("totalScans").textContent = total;
+  $("suspiciousCount").textContent = flagged;
+
+  const verdict = $("verdict");
+  verdict.textContent = suspicious
+    ? "⚠ Warning signs found"
+    : "No basic warning signs found";
+  verdict.className = "pill " + (suspicious ? "warning" : "safe");
+
+  $("scannedUrl").textContent = parsed.href;
+  $("formatResult").textContent = "Valid URL format";
+  $("httpsResult").textContent = parsed.protocol === "https:"
+    ? "Uses HTTPS (not proof of safety)"
+    : "HTTP — connection is not encrypted";
+  $("patternResult").textContent = reasons.length
+    ? reasons.join("; ")
+    : "No patterns matched the demo rules";
+
+  $("riskText").textContent = suspicious
+    ? "Demo result: " + reasons.length +
+      " warning signal(s). This does not confirm that the URL is malicious."
+    : "Demo result: no configured warning signals found. This does not mean the URL is safe.";
+
+  $("barFill").style.width =
+    Math.min(reasons.length * 25, 100) + "%";
+  $("barFill").style.background =
+    suspicious ? "#ffd16b" : "#42e6a4";
+
+  $("result").style.display = "block";
+
+  historyItems.unshift({
+    url: parsed.href,
+    verdict: suspicious ? "Warning signs" : "No signals",
+    time: new Date().toLocaleTimeString()
+  });
+
+  historyItems = historyItems.slice(0, 10);
+  renderHistory();
+}
+
+function renderHistory() {
+  const area = $("history");
+
+  if (!historyItems.length) {
+    area.innerHTML = '<p class="hint">No analyses yet.</p>';
+    return;
+  }
+
+  area.replaceChildren();
+
+  historyItems.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+
+    const strong = document.createElement("strong");
+    strong.textContent = item.verdict;
+
+    const url = document.createElement("div");
+    url.textContent = item.url;
+
+    const small = document.createElement("small");
+    small.textContent = item.time;
+
+    div.append(strong, url, small);
+    area.appendChild(div);
+  });
+}
+
+function clearHistory() {
+  historyItems = [];
+  renderHistory();
+}
+
+$("urlInput").addEventListener("keydown", event => {
+  if (event.key === "Enter") scanURL();
+});
+</script>
+</body>
+</html>
